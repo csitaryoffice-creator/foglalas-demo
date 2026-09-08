@@ -1,0 +1,51 @@
+{
+  "name": "Service",
+  "type": "object",
+  "properties": {
+    "provider_id": {
+      "type": "string"
+    },
+    "category_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "duration_minutes": {
+      "type": "number"
+    },
+    "price_huf": {
+      "type": "number"
+    },
+    "buffer_before_minutes": {
+      "type": "number",
+      "default": 0
+    },
+    "buffer_after_minutes": {
+      "type": "number",
+      "default": 0
+    },
+    "featured": {
+      "type": "boolean",
+      "default": false
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "sort_order": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "provider_id",
+    "category_id",
+    "name",
+    "duration_minutes",
+    "price_huf"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "AvailabilityRule",
+  "type": "object",
+  "properties": {
+    "provider_id": {
+      "type": "string"
+    },
+    "weekday": {
+      "type": "number"
+    },
+    "start_time": {
+      "type": "string"
+    },
+    "end_time": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "provider_id",
+    "weekday",
+    "start_time",
+    "end_time"
+  ]
+}
