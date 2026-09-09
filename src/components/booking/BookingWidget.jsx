@@ -220,18 +220,19 @@ export default function BookingWidget() {
   return (
     <div ref={widgetRef} className="booking-panel bg-card border scroll-mt-20">
       {/* Step indicator */}
-      <div className="flex border-b border-charcoal/10 overflow-x-auto">
+      <div className="flex border-b border-charcoal/10 overflow-hidden">
         {visibleSteps.map(({ label, step: stepNumber }, i) => {
           const active = step === stepNumber;
           const done = step > stepNumber;
           return (
             <div
               key={label}
-              className={`flex-1 min-w-[60px] px-2 sm:px-3 py-3 text-center text-xs sm:text-sm border-r border-charcoal/10 last:border-r-0 flex items-center justify-center min-h-[44px] ${
+              className={`flex min-h-[44px] min-w-0 flex-1 items-center justify-center gap-0.5 overflow-hidden border-r border-charcoal/10 px-1 py-3 text-center text-xs sm:text-[10px] md:text-xs lg:text-sm last:border-r-0 ${
                 active ? "bg-forest text-ivory" : done ? "bg-forest/5 text-forest" : "text-charcoal/50"
               }`}
             >
-              <span className="font-medium">{i + 1}.</span> <span className="hidden sm:inline">{label}</span>
+              <span className="shrink-0 font-medium">{i + 1}.</span>
+              <span className="hidden min-w-0 overflow-hidden text-ellipsis whitespace-nowrap sm:inline" title={label}>{label}</span>
             </div>
           );
         })}
@@ -257,10 +258,10 @@ export default function BookingWidget() {
                   <button
                     key={p.id}
                     onClick={() => selectProvider(p)}
-                    className="provider-choice group text-left border border-charcoal/15 transition-colors overflow-hidden flex flex-col"
+                    className="provider-choice group text-left border border-charcoal/15 transition-colors overflow-hidden"
                   >
                     {portrait ? (
-                      <div className="aspect-[4/5] overflow-hidden bg-forest/5">
+                      <div className="provider-choice__portrait overflow-hidden bg-forest/5">
                         <img
                           src={portrait}
                           alt={p.name}
@@ -273,9 +274,9 @@ export default function BookingWidget() {
                       </div>
                     )}
                     <div className="provider-choice__body p-3 sm:p-4">
-                      <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">{area}</p>
-                      <p className="font-heading text-base sm:text-lg text-foreground mt-0.5">{firstName}</p>
-                      {role && <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">{role}</p>}
+                      <p className="provider-choice__area text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wide">{area}</p>
+                      <p className="provider-choice__name font-heading text-base sm:text-lg text-foreground mt-0.5">{firstName}</p>
+                      {role && <p className="provider-choice__role text-xs sm:text-sm text-muted-foreground mt-0.5">{role}</p>}
                     </div>
                   </button>
                 );

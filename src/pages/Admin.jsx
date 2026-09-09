@@ -11,6 +11,7 @@ import AdminArchive from "@/components/admin/AdminArchive";
 import AdminServices from "@/components/admin/AdminServices";
 import BlockedSlotsPanel from "@/components/admin/BlockedSlotsPanel";
 import AdminSettings from "@/components/admin/AdminSettings";
+import AdminProviders from "@/components/admin/AdminProviders";
 
 export default function Admin() {
   const { preset, terminology, bookingPath, adminLoginPath, resetDemo, revision } = useDemo();
@@ -25,6 +26,7 @@ export default function Admin() {
     { k: "dashboard", l: "Mai foglalások" },
     { k: "archive", l: "Archívum" },
     { k: "services", l: terminology.servicePlural },
+    { k: "providers", l: terminology.providerPlural },
     { k: "blocked", l: "Lezárandó időpontok" },
     { k: "settings", l: "Beállítások" },
   ];
@@ -166,6 +168,7 @@ export default function Admin() {
           <AdminArchive providers={providers} services={services} bookings={bookings} loading={loading} reload={loadAll} />
         )}
         {tab === "services" && <AdminServices providers={providers} reload={loadAll} />}
+        {tab === "providers" && <AdminProviders providers={providers} reload={loadAll} />}
         {tab === "blocked" && <BlockedSlotsPanel providers={providers} />}
         {tab === "settings" && <AdminSettings providers={providers} reload={loadAll} />}
       </div>

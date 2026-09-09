@@ -5,18 +5,18 @@ import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import BookingCreateDialog from "@/components/admin/BookingCreateDialog";
 import { useDemo } from "@/demo/DemoContext";
 
-const STATUS_COLORS = {
-  pending: "bg-amber-100 text-amber-800",
-  confirmed: "bg-green-100 text-green-800",
-  completed: "bg-blue-100 text-blue-800",
-  cancelled: "bg-red-100 text-red-800 line-through",
-  no_show: "bg-gray-200 text-gray-700",
+const STATUS_PALETTE = {
+  pending: { background: "#e7f2fb", border: "#79a8cd", text: "#244f70" },
+  confirmed: { background: "#edf1e3", border: "#8e9b68", text: "#48532f" },
+  completed: { background: "#fff2bd", border: "#d4ad39", text: "#705817" },
+  cancelled: { background: "#fbe5e3", border: "#d47b75", text: "#7f3732" },
+  no_show: { background: "#fbe5e3", border: "#d47b75", text: "#7f3732" },
 };
 
 const STATUS = {
   pending: "Függőben",
   confirmed: "Megerősítve",
-  completed: "Befejezve",
+  completed: "Lezárt",
   cancelled: "Lemondva",
   no_show: "Nem jelent meg",
 };
@@ -34,10 +34,23 @@ function withAlpha(hex, alpha) {
   return `rgba(${value >> 16}, ${(value >> 8) & 255}, ${value & 255}, ${alpha})`;
 }
 
-function providerCalendarStyle(providerId, providers) {
-  const provider = providers.find((p) => p.id === providerId);
-  const color = provider?.calendar_color || "#527a73";
-  return { backgroundColor: withAlpha(color, 0.16), borderColor: color, color: "#1f2937" };
+function bookingCalendarStyle(booking, providers) {
+  const provider = providers.find((p) => p.id === booking.provider_id);
+  const providerColor = provider?.calendar_color || "#527a73";
+  const status = STATUS_PALETTE[booking.status] || STATUS_PALETTE.pending;
+  return {
+    backgroundColor: status.background,
+    borderColor: status.border,
+    borderLeftColor: providerColor,
+    boxShadow: `inset 3px 0 0 ${providerColor}`,
+    color: status.text,
+    textDecoration: booking.status === "cancelled" ? "line-through" : "none",
+  };
+}
+
+function statusBadgeStyle(statusKey) {
+  const status = STATUS_PALETTE[statusKey] || STATUS_PALETTE.pending;
+  return { backgroundColor: status.background, borderColor: status.border, color: status.text };
 }
 
 export default function AdminCalendar({ providers, services, bookings: propBookings, onSelectBooking, onReload }) {
@@ -142,6 +155,19 @@ export default function AdminCalendar({ providers, services, bookings: propBooki
         </div>
       </div>
 
+      <div className="mb-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground" aria-label="Foglalási állapotok színei">
+        {[
+          ["confirmed", "Megerősítve"],
+          ["cancelled", "Lemondva"],
+          ["completed", "Lezárt"],
+          ["pending", "Függőben"],
+        ].map(([key, label]) => (
+          <span key={key} className="inline-flex items-center gap-1.5">
+            <span className="h-3 w-3 border" style={statusBadgeStyle(key)} /> {label}
+          </span>
+        ))}
+      </div>
+
       {loading ? (
         <p className="text-muted-foreground text-sm py-8 text-center">Betöltés…</p>
       ) : view === "day" ? (
@@ -181,7 +207,7 @@ function DayView({ dateStr, bookings, onSelect, provName, svcName, providers }) 
           key={b.id}
           onClick={() => onSelect?.(b)}
           className="w-full text-left border p-3 transition-colors hover:opacity-80"
-          style={providerCalendarStyle(b.provider_id, providers)}
+          style={bookingCalendarStyle(b, providers)}
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -193,7 +219,7 @@ function DayView({ dateStr, bookings, onSelect, provName, svcName, providers }) 
                 {provName(b.provider_id)} · {svcName(b.service_id)}
               </p>
             </div>
-            <span className={`text-xs px-2 py-0.5 rounded whitespace-nowrap ${STATUS_COLORS[b.status]}`}>
+            <span className="border px-2 py-0.5 text-xs whitespace-nowrap" style={statusBadgeStyle(b.status)}>
               {STATUS[b.status]}
             </span>
           </div>
@@ -285,7 +311,7 @@ function WeekView({ weekStart, bookings, onSelect, provName, svcName, providers 
             </div>
             {days.map((dateStr) => {
               const dayBookings = bookings
-                .filter((b) => b.start_datetime?.startsWith(dateStr) && b.status !== "cancelled")
+                .filter((b) => b.start_datetime?.startsWith(dateStr))
                 .sort((a, b) => a.start_datetime.localeCompare(b.start_datetime));
               const layout = layoutConcurrentBookings(dayBookings);
               return (
@@ -307,7 +333,7 @@ function WeekView({ weekStart, bookings, onSelect, provName, svcName, providers 
                         key={b.id}
                         onClick={() => onSelect?.(b)}
                         className="absolute px-1 py-0.5 text-[10px] leading-tight overflow-hidden border-l-2 transition-opacity hover:opacity-80"
-                        style={{ top, height, left: `calc(${leftPct}% + 2px)`, width: `calc(${widthPct}% - 4px)`, ...providerCalendarStyle(b.provider_id, providers) }}
+                        style={{ top, height, left: `calc(${leftPct}% + 2px)`, width: `calc(${widthPct}% - 4px)`, ...bookingCalendarStyle(b, providers) }}
                       >
                         <p className="font-medium truncate">{b.start_datetime.substring(11, 16)} {b.customer_name}</p>
                         <p className="truncate opacity-80">{svcName(b.service_id)}</p>
@@ -332,7 +358,7 @@ function WeekView({ weekStart, bookings, onSelect, provName, svcName, providers 
       <div className="sm:hidden space-y-4">
         {days.map((dateStr) => {
           const dayBookings = bookings
-            .filter((b) => b.start_datetime?.startsWith(dateStr) && b.status !== "cancelled")
+            .filter((b) => b.start_datetime?.startsWith(dateStr))
             .sort((a, b) => a.start_datetime.localeCompare(b.start_datetime));
           const [, m, d] = dateStr.split("-").map(Number);
           const wd = weekdayFromDate(dateStr);
@@ -348,7 +374,7 @@ function WeekView({ weekStart, bookings, onSelect, provName, svcName, providers 
                       key={b.id}
                       onClick={() => onSelect?.(b)}
                       className="w-full text-left border-l-2 px-2 py-1.5 text-xs transition-opacity hover:opacity-80"
-                      style={providerCalendarStyle(b.provider_id, providers)}
+                      style={bookingCalendarStyle(b, providers)}
                     >
                       <p className="font-medium">{b.start_datetime.substring(11, 16)} — {b.end_datetime?.substring(11, 16)} · {b.customer_name}</p>
                       <p className="opacity-80 truncate">{provName(b.provider_id)} · {svcName(b.service_id)}</p>
@@ -395,7 +421,7 @@ function MonthView({ refDate, bookings, onSelect, providers }) {
                     key={b.id}
                     onClick={() => onSelect?.(b)}
                     className="w-full text-left px-1 py-0.5 text-[10px] truncate border-l-2 transition-opacity hover:opacity-80"
-                    style={providerCalendarStyle(b.provider_id, providers)}
+                    style={bookingCalendarStyle(b, providers)}
                   >
                     {b.start_datetime.substring(11, 16)} {b.customer_name}
                   </button>

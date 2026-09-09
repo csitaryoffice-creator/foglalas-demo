@@ -1,7 +1,7 @@
 import { getDemoPreset } from "./presets.js";
 
 const ACTIVE_PRESET_KEY = "idopont-demo-active-preset";
-const STATE_KEY_PREFIX = "idopont-demo-state:v4:";
+const STATE_KEY_PREFIX = "idopont-demo-state:v5:";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const storage = () => window.sessionStorage;

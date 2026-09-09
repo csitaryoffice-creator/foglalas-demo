@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, Loader2, Plus } from "lucide-react";
+import { Check, Loader2 } from "lucide-react";
 import { getSettings, saveSetting, clearCache } from "@/services/settings";
 import * as repo from "@/services/dataService";
 import { Input } from "@/components/ui/input";
@@ -20,15 +20,11 @@ const CALENDAR_FIELDS = [
   { key: "booking_unavailable_color", label: "Nem elérhető időpontok" },
 ];
 
-const EMPTY_PROVIDER = { name: "", display_name: "", role: "", area: "", calendar_color: "#527a73" };
-
 export default function AdminSettings({ providers = [], reload }) {
   const { terminology } = useDemo();
   const [settings, setSettings] = useState(null);
   const [providerColors, setProviderColors] = useState({});
-  const [newProvider, setNewProvider] = useState(EMPTY_PROVIDER);
   const [saving, setSaving] = useState(false);
-  const [adding, setAdding] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => { getSettings().then(setSettings); }, []);
@@ -49,36 +45,6 @@ export default function AdminSettings({ providers = [], reload }) {
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
-  }
-
-  async function addProvider() {
-    if (!newProvider.name.trim()) return;
-    setAdding(true);
-    const provider = await repo.providers.create({
-      ...newProvider,
-      name: newProvider.name.trim(),
-      display_name: newProvider.display_name.trim() || newProvider.name.trim(),
-      role: newProvider.role.trim(),
-      area: newProvider.area.trim() || newProvider.role.trim(),
-      active: true,
-      sort_order: providers.length,
-    });
-    await repo.availabilityRules.bulkCreate([1, 2, 3, 4, 5].map((weekday) => ({
-      provider_id: provider.id,
-      weekday,
-      start_time: "09:00",
-      end_time: "17:00",
-      active: true,
-    })));
-    await repo.operationLogs.create({
-      action: "provider_created",
-      description: `${provider.name} hozzáadva`,
-      entity_type: "provider",
-      entity_id: provider.id,
-    });
-    setNewProvider(EMPTY_PROVIDER);
-    await reload?.();
-    setAdding(false);
   }
 
   if (!settings) return <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
@@ -127,21 +93,6 @@ export default function AdminSettings({ providers = [], reload }) {
             </label>
           ))}
         </div>
-      </section>
-
-      <section className="border-t pt-7">
-        <h2 className="font-heading text-xl text-foreground">Új {terminology.provider.toLowerCase()} hozzáadása</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Az új szakember alapértelmezetten hétfőtől péntekig 9–17 óráig lesz elérhető. Ezután rendelj hozzá szolgáltatást a {terminology.servicePlural.toLowerCase()} menüben.</p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <div><Label>Teljes név *</Label><Input value={newProvider.name} onChange={(event) => setNewProvider({ ...newProvider, name: event.target.value })} className="mt-1.5" /></div>
-          <div><Label>Rövid megjelenő név</Label><Input value={newProvider.display_name} onChange={(event) => setNewProvider({ ...newProvider, display_name: event.target.value })} className="mt-1.5" /></div>
-          <div><Label>Szerepkör</Label><Input value={newProvider.role} onChange={(event) => setNewProvider({ ...newProvider, role: event.target.value })} className="mt-1.5" /></div>
-          <div><Label>Szakterület</Label><Input value={newProvider.area} onChange={(event) => setNewProvider({ ...newProvider, area: event.target.value })} className="mt-1.5" /></div>
-          <label className="text-sm"><span className="block text-muted-foreground">Naptárszín</span><input className="mt-1.5 h-10 w-16 border p-1" type="color" value={newProvider.calendar_color} onChange={(event) => setNewProvider({ ...newProvider, calendar_color: event.target.value })} /></label>
-        </div>
-        <button type="button" onClick={addProvider} disabled={adding || !newProvider.name.trim()} className="mt-4 inline-flex items-center bg-forest px-5 py-2.5 text-ivory font-medium disabled:opacity-50">
-          {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Plus className="mr-1.5 h-4 w-4" /> {terminology.provider} hozzáadása</>}
-        </button>
       </section>
 
       <button onClick={save} disabled={saving} className="inline-flex items-center bg-forest px-5 py-2.5 text-ivory font-medium disabled:opacity-60">
